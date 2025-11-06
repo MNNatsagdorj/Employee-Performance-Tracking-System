@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Badge } from '@/components/common/Badge'
 import { Avatar } from '@/components/common/Avatar'
+import { Modal } from '@/components/common/Modal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/common/Table'
-import { ArrowLeft, Shield, Clipboard, Code, Mail, TrendingUp, Folder, Users } from 'lucide-react'
+import { ArrowLeft, Shield, Clipboard, Code, Mail, TrendingUp, Folder, Users, UserPlus, FolderPlus } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import api from '@/lib/mockApi'
 import { Team, User, Project } from '@/types'
 import { getRoleColor } from '@/lib/utils'
@@ -34,6 +37,8 @@ const getRoleIcon = (role: string) => {
 export function TeamDetailPage() {
   const { teamId } = useParams<{ teamId: string }>()
   const navigate = useNavigate()
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  const [isAssignProjectModalOpen, setIsAssignProjectModalOpen] = useState(false)
 
   // Fetch team details
   const { data: team, isLoading } = useQuery({
@@ -73,6 +78,13 @@ export function TeamDetailPage() {
     )
   }
 
+  // Prepare chart data - story points completed by member
+  const memberPerformanceData = team.memberDetails?.map((member: User) => ({
+    name: member.name.split(' ')[0], // First name only for chart
+    storyPoints: member.monthlyScore ? Math.floor(member.monthlyScore / 2) : 0, // Approximate story points from score
+    score: member.monthlyScore || 0,
+  })) || []
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,7 +103,25 @@ export function TeamDetailPage() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{team.name}</h1>
             <p className="text-muted-foreground mt-1">{team.description}</p>
           </div>
-          <Button>Edit Team</Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline"
+              onClick={() => setIsAddMemberModalOpen(true)}
+              className="flex-1 sm:flex-none"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Member
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setIsAssignProjectModalOpen(true)}
+              className="flex-1 sm:flex-none"
+            >
+              <FolderPlus className="mr-2 h-4 w-4" />
+              Assign Project
+            </Button>
+            <Button className="flex-1 sm:flex-none">Edit Team</Button>
+          </div>
         </div>
       </div>
 
@@ -215,6 +245,60 @@ export function TeamDetailPage() {
         </Card>
       </div>
 
+      {/* Performance Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Performance - Story Points by Member</CardTitle>
+          <CardDescription>
+            Completed story points this month (approximate based on scores)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={memberPerformanceData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="name"
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Story Points', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'storyPoints') return [value, 'Story Points']
+                    if (name === 'score') return [value, 'Total Score']
+                    return [value, name]
+                  }}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="storyPoints" 
+                  fill="hsl(var(--primary))" 
+                  name="Story Points"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  dataKey="score" 
+                  fill="#22c55e" 
+                  name="Total Score"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Team Members */}
       <Card>
         <CardHeader>
@@ -325,6 +409,131 @@ export function TeamDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Member Modal */}
+      <Modal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+        title="Add Team Member"
+        description="Add a new member to this team"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Select User
+            </label>
+            <select className="w-full px-3 py-2 rounded-md border bg-background">
+              <option value="">Choose a user...</option>
+              <option value="1">John Doe - Developer</option>
+              <option value="2">Jane Smith - Developer</option>
+              <option value="3">Bob Johnson - QA Engineer</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Assign Role
+            </label>
+            <select className="w-full px-3 py-2 rounded-md border bg-background">
+              <option value="DEVELOPER">Developer</option>
+              <option value="PM">Project Manager</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsAddMemberModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                // TODO: Implement add member logic
+                console.log('Add member to team')
+                setIsAddMemberModalOpen(false)
+              }}
+            >
+              Add Member
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Assign Project Modal */}
+      <Modal
+        isOpen={isAssignProjectModalOpen}
+        onClose={() => setIsAssignProjectModalOpen(false)}
+        title="Assign Project to Team"
+        description="Assign an existing project or create a new one for this team"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Select Project
+            </label>
+            <select className="w-full px-3 py-2 rounded-md border bg-background">
+              <option value="">Choose a project...</option>
+              <option value="1">E-Commerce Platform</option>
+              <option value="2">Internal CRM System</option>
+              <option value="3">Mobile App Redesign</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Project Manager
+            </label>
+            <select className="w-full px-3 py-2 rounded-md border bg-background">
+              <option value={team.pmId}>{team.pmName || 'Select PM'}</option>
+              <option value="1">Sarah Johnson</option>
+              <option value="2">James Wilson</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Start Date
+            </label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 rounded-md border bg-background"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Deadline
+            </label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 rounded-md border bg-background"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsAssignProjectModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                // TODO: Implement assign project logic
+                console.log('Assign project to team')
+                setIsAssignProjectModalOpen(false)
+              }}
+            >
+              Assign Project
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
