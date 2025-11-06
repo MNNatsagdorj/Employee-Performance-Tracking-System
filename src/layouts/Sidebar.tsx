@@ -92,13 +92,15 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
   const location = useLocation()
   const { user } = useAuthStore()
 
-  // Filter nav items based on user role
-  const visibleNavItems = navItems.filter(item => {
-    // If no roles specified, item is visible to all
-    if (!item.roles || item.roles.length === 0) return true
-    // Otherwise, check if user's role is in the allowed roles
-    return user?.role && item.roles.includes(user.role)
-  })
+  // PROTOTYPE MODE: Show all nav items regardless of role
+  // TODO: Enable role-based filtering for production
+  const visibleNavItems = navItems // Show all items
+  
+  // Production version (commented out):
+  // const visibleNavItems = navItems.filter(item => {
+  //   if (!item.roles || item.roles.length === 0) return true
+  //   return user?.role && item.roles.includes(user.role)
+  // })
 
   return (
     <>
