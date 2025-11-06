@@ -7,15 +7,22 @@ import {
   Settings,
   BarChart3,
   Users,
-  X
+  X,
+  Shield,
+  Clipboard,
+  Code,
+  UserCog
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/common/Button'
+import { useAuthStore } from '@/stores/authStore'
+import { UserRole } from '@/types'
 
 interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
+  roles?: UserRole[] // If specified, only these roles can see this item
 }
 
 const navItems: NavItem[] = [
@@ -25,9 +32,33 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
+    title: 'Teams',
+    href: '/teams',
+    icon: Users,
+    roles: ['OWNER', 'TEAM_MANAGER'], // Only visible to owners and managers
+  },
+  {
+    title: 'Members',
+    href: '/members',
+    icon: UserCog,
+    roles: ['OWNER', 'TEAM_MANAGER'], // Only visible to owners and managers
+  },
+  {
     title: 'Projects',
     href: '/projects',
     icon: FolderKanban,
+  },
+  {
+    title: 'PM Dashboard',
+    href: '/project-assignment',
+    icon: Clipboard,
+    roles: ['PM', 'TEAM_MANAGER', 'OWNER'], // PM-specific page
+  },
+  {
+    title: 'Developer Tasks',
+    href: '/developer-tasks',
+    icon: Code,
+    roles: ['DEVELOPER'], // Developer-specific page
   },
   {
     title: 'Tasks',
@@ -43,11 +74,7 @@ const navItems: NavItem[] = [
     title: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
-  },
-  {
-    title: 'Team',
-    href: '/team',
-    icon: Users,
+    roles: ['OWNER', 'TEAM_MANAGER', 'PM'], // Analytics for management
   },
   {
     title: 'Settings',
@@ -63,6 +90,15 @@ interface SidebarProps {
 
 export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
   const location = useLocation()
+  const { user } = useAuthStore()
+
+  // Filter nav items based on user role
+  const visibleNavItems = navItems.filter(item => {
+    // If no roles specified, item is visible to all
+    if (!item.roles || item.roles.length === 0) return true
+    // Otherwise, check if user's role is in the allowed roles
+    return user?.role && item.roles.includes(user.role)
+  })
 
   return (
     <>
@@ -105,40 +141,56 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
             </Button>
           </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 mt-4">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href
-            const Icon = item.icon
+          {/* User Role Badge */}
+          {user && (
+            <div className="px-6 py-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
+                {user.role === 'OWNER' && <Shield className="h-4 w-4 text-yellow-600" />}
+                {user.role === 'TEAM_MANAGER' && <Shield className="h-4 w-4 text-blue-600" />}
+                {user.role === 'PM' && <Clipboard className="h-4 w-4 text-green-600" />}
+                {user.role === 'DEVELOPER' && <Code className="h-4 w-4 text-purple-600" />}
+                <span className="font-medium">
+                  {user.role === 'OWNER' && 'Owner'}
+                  {user.role === 'TEAM_MANAGER' && 'Team Manager'}
+                  {user.role === 'PM' && 'PM'}
+                  {user.role === 'DEVELOPER' && 'Developer'}
+                </span>
+              </div>
+            </div>
+          )}
 
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={onClose}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                {item.title}
-              </Link>
-            )
-          })}
-        </nav>
+          {/* Navigation */}
+          <nav className="flex-1 space-y-1 px-3">
+            {visibleNavItems.map((item) => {
+              const isActive = location.pathname === item.href
+              const Icon = item.icon
+
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span>{item.title}</span>
+                </Link>
+              )
+            })}
+          </nav>
 
           {/* Footer */}
-          <div className="border-t border-border px-6 py-4">
-            <div className="text-xs text-muted-foreground">
-              v1.0.0 • © 2024
-            </div>
+          <div className="px-6 py-2 text-xs text-muted-foreground">
+            <p>© 2024 EmployeeTrack</p>
+            <p className="mt-1">Version 2.0</p>
           </div>
         </div>
       </aside>
     </>
   )
 }
-

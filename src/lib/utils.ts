@@ -43,3 +43,22 @@ export function getPriorityColor(priority: string): string {
   return colors[priority] || colors['medium']
 }
 
+export function getDifficultyColor(difficulty: string): string {
+  const colors: Record<string, string> = {
+    'Easy': 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950 dark:text-green-400',
+    'Medium': 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-950 dark:text-orange-400',
+    'Hard': 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950 dark:text-red-400',
+  }
+  return colors[difficulty] || colors['Medium']
+}
+
+export function getRoleColor(role: string): string {
+  const colors: Record<string, string> = {
+    'OWNER': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400',
+    'TEAM_MANAGER': 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
+    'PM': 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',
+    'DEVELOPER': 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-400',
+  }
+  return colors[role] || 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+}
+
