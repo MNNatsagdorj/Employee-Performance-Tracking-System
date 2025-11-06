@@ -1,4 +1,4 @@
-import { useQuery } from '@tantml:react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
