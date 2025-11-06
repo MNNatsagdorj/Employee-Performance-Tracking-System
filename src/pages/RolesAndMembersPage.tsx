@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Badge } from '@/components/common/Badge'
@@ -259,16 +260,16 @@ export function RolesAndMembersPage() {
                   filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        <div className="flex items-center gap-3">
+                        <Link to={`/members/${user.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                           <Avatar
                             src={user.avatar}
                             fallback={getInitials(user.name)}
                             className="h-10 w-10"
                           />
                           <div>
-                            <p className="font-medium">{user.name}</p>
+                            <p className="font-medium hover:text-primary transition-colors">{user.name}</p>
                           </div>
-                        </div>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <Badge

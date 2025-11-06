@@ -17,8 +17,10 @@ import { Settings } from '@/pages/Settings'
 import { TeamsPage } from '@/pages/TeamsPage'
 import { TeamDetailPage } from '@/pages/TeamDetailPage'
 import { RolesAndMembersPage } from '@/pages/RolesAndMembersPage'
+import { MemberDetailPage } from '@/pages/MemberDetailPage'
 import { ProjectAssignmentPage } from '@/pages/ProjectAssignmentPage'
 import { DeveloperTasksPage } from '@/pages/DeveloperTasksPage'
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { ToastContainer } from '@/components/common/Toast'
 import { useThemeStore } from '@/stores/themeStore'
 
@@ -57,9 +59,11 @@ function App() {
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/teams/:teamId" element={<TeamDetailPage />} />
             <Route path="/members" element={<RolesAndMembersPage />} />
+            <Route path="/members/:userId" element={<MemberDetailPage />} />
             
             {/* Project & Task Management */}
             <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
             <Route path="/project-assignment" element={<ProjectAssignmentPage />} />
             <Route path="/developer-tasks" element={<DeveloperTasksPage />} />
             <Route path="/tasks" element={<Tasks />} />
